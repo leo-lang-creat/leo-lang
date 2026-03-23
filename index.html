@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leo — A New Programming Language</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --leo: #7c5cbf;
+  --leo-light: #a98de0;
+  --leo-dark: #4a3680;
+  --bg: #0a0a12;
+  --bg2: #0f0f1c;
+  --bg3: #141428;
+  --fg: #e8e4f8;
+  --fg2: #9890b8;
+  --fg3: #5a5478;
+  --border: rgba(124,92,191,0.15);
+  --border2: rgba(124,92,191,0.3);
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── Noise texture overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 48px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,18,0.85);
+  backdrop-filter: blur(12px);
+}
+.nav-logo {
+  font-family: var(--display);
+  font-size: 22px; font-weight: 800;
+  color: var(--leo-light);
+  letter-spacing: -0.5px;
+}
+.nav-logo span { color: var(--fg3); font-weight: 400; font-size: 13px; margin-left: 8px; vertical-align: middle; }
+.nav-links { display: flex; gap: 32px; }
+.nav-links a { color: var(--fg2); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+.nav-links a:hover { color: var(--fg); }
+.nav-download {
+  background: var(--leo);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 8px 20px; font-size: 14px; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  font-family: var(--body);
+}
+.nav-download:hover { background: var(--leo-light); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 120px 48px 80px;
+  position: relative;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,92,191,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -55%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(124,92,191,0.1);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 6px 16px; font-size: 12px;
+  color: var(--leo-light); margin-bottom: 32px;
+  font-family: var(--mono);
+  animation: fadeUp 0.6s ease both;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--leo-light); animation: pulse 2s ease infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(56px, 9vw, 100px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -3px;
+  margin-bottom: 24px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.hero h1 .accent { color: var(--leo-light); }
+
+.hero-sub {
+  font-size: 18px; color: var(--fg2); max-width: 520px;
+  line-height: 1.6; margin-bottom: 48px;
+  font-weight: 300;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+.btn-primary {
+  background: var(--leo);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 14px 32px; font-size: 15px; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  font-family: var(--body);
+}
+.btn-primary:hover { background: var(--leo-light); transform: translateY(-2px); }
+.btn-secondary {
+  background: transparent;
+  color: var(--fg2); border: 1px solid var(--border2); border-radius: 10px;
+  padding: 14px 32px; font-size: 15px;
+  cursor: pointer; text-decoration: none;
+  transition: border-color 0.2s, color 0.2s, transform 0.15s;
+  font-family: var(--body);
+}
+.btn-secondary:hover { border-color: var(--leo-light); color: var(--fg); transform: translateY(-2px); }
+
+/* ── CODE PREVIEW ── */
+.code-preview {
+  margin-top: 80px; width: 100%; max-width: 560px;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+.code-window {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 14px; overflow: hidden;
+}
+.code-titlebar {
+  background: var(--bg3);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-red { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green { background: #28c840; }
+.code-filename { font-family: var(--mono); font-size: 12px; color: var(--fg3); margin-left: 8px; }
+.code-body { padding: 20px 24px; text-align: left; }
+.code-body pre { font-family: var(--mono); font-size: 13px; line-height: 1.9; }
+.kw { color: #cba6f7; }
+.str { color: #a6e3a1; }
+.num { color: #fab387; }
+.op  { color: #89dceb; }
+.cm  { color: var(--fg3); font-style: italic; }
+
+/* ── SECTIONS ── */
+section { padding: 100px 48px; max-width: 1100px; margin: 0 auto; }
+
+.section-label {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--leo-light); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 16px;
+}
+.section-title {
+  font-family: var(--display); font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800; letter-spacing: -1.5px;
+  line-height: 1.05; margin-bottom: 20px;
+}
+.section-sub { font-size: 17px; color: var(--fg2); max-width: 520px; font-weight: 300; }
+
+/* ── FEATURES ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px; margin-top: 60px;
+}
+.feature-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.feature-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+.feature-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(124,92,191,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 16px;
+}
+.feature-card h3 { font-family: var(--display); font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.feature-card p { font-size: 14px; color: var(--fg2); line-height: 1.6; }
+
+/* ── SYNTAX TABLE ── */
+.syntax-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-top: 60px;
+}
+@media (max-width: 700px) { .syntax-grid { grid-template-columns: 1fr; } }
+.syntax-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 24px;
+}
+.syntax-card h4 { font-family: var(--mono); font-size: 12px; color: var(--leo-light); margin-bottom: 12px; letter-spacing: 1px; }
+.syntax-card code { font-family: var(--mono); font-size: 13px; line-height: 2; display: block; }
+
+/* ── DOWNLOAD ── */
+.download-box {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px; padding: 60px;
+  text-align: center; margin-top: 60px;
+  position: relative; overflow: hidden;
+}
+.download-box::before {
+  content: '';
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,92,191,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.download-box h2 { font-family: var(--display); font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 12px; }
+.download-box p { color: var(--fg2); margin-bottom: 32px; font-size: 16px; }
+.download-version { font-family: var(--mono); font-size: 12px; color: var(--fg3); margin-top: 16px; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 48px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+  color: var(--fg3); font-size: 13px;
+}
+.footer-logo { font-family: var(--display); font-weight: 800; color: var(--leo-light); font-size: 18px; }
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Leo <span>v1.0</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#syntax">Syntax</a>
+    <a href="#download">Download</a>
+  </div>
+  <a href="#download" class="nav-download">Download IDLE</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge"><span class="badge-dot"></span> Now available — Leo v1.0</div>
+  <h1>Code in <span class="accent">Leo.</span><br>Your language.</h1>
+  <p class="hero-sub">A new programming language designed for building web apps and desktop software — with a syntax that's uniquely yours.</p>
+  <div class="hero-actions">
+    <a href="#download" class="btn-primary">Download Leo IDLE</a>
+    <a href="#syntax" class="btn-secondary">View syntax</a>
+  </div>
+
+  <div class="code-preview">
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+        <span class="code-filename">hello.leo</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="kw">@leo</span>
+
+<span class="cm">// greet the user</span>
+<span class="kw">leo</span> name <span class="op">==</span> ask(<span class="str">("what is your name?")</span>)
+<span class="kw">leo</span> msg  <span class="op">==</span> <span class="str">("hello!")</span>-(<span class="num">a3</span>)-(<span class="num">c-type==green</span>)
+preview(msg)
+preview(name)
+
+<span class="cm">// simple math</span>
+<span class="kw">leo</span> a <span class="op">==</span> <span class="num">10</span>
+<span class="kw">leo</span> b <span class="op">==</span> <span class="num">20</span>
+preview(a <span class="op">&lt;+&gt;</span> b)
+
+<span class="kw">@leo.stop()</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="reveal">
+    <div class="section-label">Why Leo</div>
+    <h2 class="section-title">Built different.<br>By design.</h2>
+    <p class="section-sub">Leo was designed from scratch with a unique syntax that makes your code stand out.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon">⚡</div>
+      <h3>Interpreted</h3>
+      <p>Write and run Leo programs instantly. No compilation step needed — just save and execute.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">🎨</div>
+      <h3>Text styling built in</h3>
+      <p>Color and resize text directly in code using <code style="font-family:var(--mono);font-size:12px;color:var(--leo-light)">(a3)</code> and <code style="font-family:var(--mono);font-size:12px;color:var(--leo-light)">(c-type==red)</code> — no libraries needed.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">🖥️</div>
+      <h3>Own IDLE included</h3>
+      <p>Leo ships with its own IDE — syntax highlighting, file tree, dark and light themes, one-click run.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">🦁</div>
+      <h3>Unique syntax</h3>
+      <p>From <code style="font-family:var(--mono);font-size:12px;color:var(--leo-light)">@leo</code> program wrappers to <code style="font-family:var(--mono);font-size:12px;color:var(--leo-light)">&lt;+&gt;</code> arithmetic — Leo looks like nothing else.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">🔁</div>
+      <h3>Repeat loops</h3>
+      <p>Run any block of code multiple times with the simple <code style="font-family:var(--mono);font-size:12px;color:var(--leo-light)">/repeat(n) { }</code> syntax.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">📦</div>
+      <h3>Open & growing</h3>
+      <p>Leo v1.0 is just the beginning. New features are added with every release.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SYNTAX -->
+<section id="syntax">
+  <div class="reveal">
+    <div class="section-label">Syntax reference</div>
+    <h2 class="section-title">Simple.<br>Powerful. Yours.</h2>
+    <p class="section-sub">Every Leo program follows a clean, readable structure.</p>
+  </div>
+  <div class="syntax-grid">
+    <div class="syntax-card reveal">
+      <h4>Program structure</h4>
+      <code><span class="kw">@leo</span>          <span class="cm">// start</span>
+<span class="cm">// your code</span>
+<span class="kw">@leo.stop()</span>   <span class="cm">// end</span></code>
+    </div>
+    <div class="syntax-card reveal">
+      <h4>Variables</h4>
+      <code><span class="kw">leo</span> x <span class="op">==</span> <span class="num">10</span>
+<span class="kw">leo</span> name <span class="op">==</span> ask(<span class="str">("prompt")</span>)
+<span class="kw">leo</span> s <span class="op">==</span> <span class="str">("hello")</span></code>
+    </div>
+    <div class="syntax-card reveal">
+      <h4>Arithmetic</h4>
+      <code>a <span class="op">&lt;+&gt;</span> b    <span class="cm">// addition</span>
+a <span class="op">(-)</span> b    <span class="cm">// subtraction</span>
+a <span class="op">&lt;*&gt;</span> b    <span class="cm">// multiply</span>
+a <span class="op">&lt;/&gt;</span> b    <span class="cm">// division</span></code>
+    </div>
+    <div class="syntax-card reveal">
+      <h4>Text styling</h4>
+      <code><span class="str">("hi")</span>-(<span class="num">a1</span>)              <span class="cm">// small</span>
+<span class="str">("hi")</span>-(<span class="num">a3</span>)              <span class="cm">// large</span>
+<span class="str">("hi")</span>-(<span class="num">c-type==blue</span>)   <span class="cm">// color</span></code>
+    </div>
+    <div class="syntax-card reveal">
+      <h4>Output</h4>
+      <code>preview(x)
+preview(<span class="str">("hello")</span>-(<span class="num">a2</span>))</code>
+    </div>
+    <div class="syntax-card reveal">
+      <h4>Repeat loop</h4>
+      <code><span class="kw">/repeat</span>(<span class="num">3</span>) {
+  <span class="kw">leo</span> x <span class="op">==</span> <span class="str">("leo!")</span>
+}
+preview(x)</code>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download">
+  <div class="download-box reveal">
+    <h2>Download Leo IDLE</h2>
+    <p>Get the full Leo development environment — free, forever.</p>
+    <a href="leo-idle-setup.zip" class="btn-primary" style="font-size:16px;padding:16px 40px;">
+      Download for Windows
+    </a>
+    <div class="download-version">Leo IDLE v1.0 · Windows 10/11 · Free</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Leo</div>
+  <div>Built with passion. Leo v1.0 — open and growing.</div>
+  <div>© 2025 Leo Language</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
